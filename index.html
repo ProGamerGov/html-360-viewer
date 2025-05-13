@@ -23,6 +23,13 @@ Additonal info
 - Upload/Reset Media: New media can be uploaded via drag and drop at any time.
 
 
+Loading from external URLs
+- Images and videos can be loaded from other websites by appending '?url=' or '?src=' to the viewer URL, followed by the direct media link.
+- Example: https://progamergov.github.io/html-360-viewer?url=https://example.com/example_image.jpg
+- This only works when the viewer is hosted via a local or remote web server (not directly opened as a file).
+- See here for more details: https://aframe.io/docs/1.7.0/introduction/installation.html#use-a-local-server
+
+
 BibTeX
 @misc{egan2025html360viewer,
   title={Browser-Based Viewer for 360 Images and Videos},
@@ -396,6 +403,12 @@ Copyright (c) 2025 Ben Egan
 </div>
 
 <script>
+    // Extract media URL from query parameters if present
+    function getMediaUrlFromParams() {
+        const urlParams = new URLSearchParams(window.location.search);
+        return urlParams.get('url') || urlParams.get('src');
+    }
+
     document.addEventListener('DOMContentLoaded', () => {
         /* ------------------ DOM references ------------------ */
         const elements = {
@@ -626,6 +639,37 @@ Copyright (c) 2025 Ben Egan
                     state.videoElement.play().catch(() => {}); // autoplay may require user gesture
                 });
                 state.videoElement.addEventListener('timeupdate', helpers.updateSlider);
+            },
+
+            // Load media from URL if provided
+            loadMediaFromUrl: (url) => {
+                helpers.showLoading(true);
+
+                // Determine if it's a video based on extension
+                const lowerUrl = url.toLowerCase();
+                const isVideo = ['.mp4', '.webm'].some(ext => lowerUrl.endsWith(ext));
+
+                if (isVideo) {
+                    // Handle video
+                    state.currentMedia = url;
+                    state.isMediaImage = false;
+                    mediaHandlers.createVideoPanorama(url);
+                } else {
+                    // Default to treating as image for all other URLs
+                    // Try to load as image
+                    const img = new Image();
+                    img.crossOrigin = "Anonymous";
+                    img.onload = () => {
+                        state.currentMedia = url;
+                        state.isMediaImage = true;
+                        mediaHandlers.createImagePanorama(url);
+                    };
+                    img.onerror = () => {
+                        helpers.showLoading(false);
+                        alert('Unsupported media type or inaccessible URL');
+                    };
+                    img.src = url;
+                }
             }
         };
 
@@ -843,6 +887,12 @@ Copyright (c) 2025 Ben Egan
                 e.preventDefault();
             }
         }, { passive: false });
+
+        // Check for URL parameter and load media if present
+        const mediaUrl = getMediaUrlFromParams();
+        if (mediaUrl) {
+            mediaHandlers.loadMediaFromUrl(mediaUrl);
+        }
     });
 </script>
 </body>

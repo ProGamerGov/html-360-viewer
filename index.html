@@ -12,7 +12,7 @@ Controls
 | Navigate View      | Left-click + drag or touch + drag          |
 | Zoom               | Mouse wheel or pinch gesture               |
 | Fullscreen         | Browser fullscreen and VR headset control  |
-| Stereo Toggle      | Bottom-left “Stereo” button                |
+| Stereo Toggle      | Bottom-left "Stereo" button                |
 | Screenshot         | Camera icon at bottom center               |
 | Upload/Reset Media | 'Upload' button below controls             |
 | Play/Pause Video   | Play/pause button on video controls        |
@@ -128,8 +128,6 @@ Copyright (c) 2025 Ben Egan
             user-select: none;
             flex-direction: column;
             align-items: center;
-            width: auto;
-            max-width: calc(100vw - 40px);
         }
         .control-button {
             padding: 6px 12px;
@@ -161,8 +159,6 @@ Copyright (c) 2025 Ben Egan
             border-radius: 10px;
             box-shadow: 0 4px 10px rgba(0,0,0,0.35);
             margin-bottom: 16px;
-            overflow: hidden;
-            max-width: calc(100vw - 80px);
         }
         #playPauseButton {
             width: 42px;
@@ -246,7 +242,7 @@ Copyright (c) 2025 Ben Egan
         /* --- Stereo Button --- */
         #stereoButton {
             position: absolute;
-            bottom: 10px;
+            bottom: 20px;
             left: 20px;
             z-index: 20;
             padding: 6px 10px;
@@ -257,18 +253,12 @@ Copyright (c) 2025 Ben Egan
             font-size: 13px;
             cursor: pointer;
             display: none;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
         }
         #stereoButton:hover { background: rgba(0,0,0,0.8); }
         #stereoButton.active { background: rgba(66,133,244,0.8); }
 
         /* --- Upload Button --- */
         #resetButton {
-            position: absolute;
-            bottom: 10px;
-            right: 70px;
             padding: 8px 16px;
             background: rgba(0,0,0,0.5);
             color: #fff;
@@ -278,15 +268,13 @@ Copyright (c) 2025 Ben Egan
             font-size: 14px;
             z-index: 25;
             display: none;
+            margin-top: 10px;
             height: 36px;
         }
         #resetButton:hover { background: rgba(0,0,0,0.7); }
 
         /* --- Screenshot Button --- */
         #screenshotButton {
-            position: absolute;
-            bottom: 10px;
-            right: 20px;
             padding: 0;
             background: rgba(0,0,0,0.5);
             color: #fff;
@@ -296,8 +284,11 @@ Copyright (c) 2025 Ben Egan
             font-size: 14px;
             z-index: 25;
             display: none;
+            margin-left: 8px;
+            margin-top: 10px;
             height: 36px;
             width: 36px;
+            display: flex;
             align-items: center;
             justify-content: center;
             line-height: 1;
@@ -309,8 +300,6 @@ Copyright (c) 2025 Ben Egan
             display: flex;
             justify-content: center;
             align-items: center;
-            gap: 8px;
-            flex-wrap: wrap;
         }
 
         /* --- Screenshot flash effect --- */

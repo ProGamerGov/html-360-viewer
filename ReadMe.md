@@ -18,13 +18,22 @@ Supports:
 
 ## 🧪 Compatibility
 
-Work on all major web browsers that [A-Frame](https://aframe.io/docs/1.7.0/introduction/faq.html) supports.
+Works on all major web browsers that [A-Frame](https://aframe.io/docs/1.7.0/introduction/faq.html) supports.
 
 * [Firefox](https://en.wikipedia.org/wiki/Firefox)
 * [Chrome](https://en.wikipedia.org/wiki/Google_Chrome) (including Chromium based browsers like [Brave](https://en.wikipedia.org/wiki/Brave_(web_browser)) & [Opera](https://en.wikipedia.org/wiki/Opera_(web_browser)))
 * [Microsoft Edge](https://en.wikipedia.org/wiki/Microsoft_Edge)
 * [Safari](https://www.apple.com/ca/safari/)
 
+Works on [all VR headsets supported by A-Frame](https://aframe.io/docs/1.7.0/introduction/vr-headsets-and-webxr-browsers.html).
+
+* [Meta Quest](https://en.wikipedia.org/wiki/Meta_Quest) (all versions)
+* [Valve Index](https://en.wikipedia.org/wiki/Valve_Index)
+* [HTC Vive](https://en.wikipedia.org/wiki/HTC_Vive)
+* [Vive Focus](https://en.wikipedia.org/wiki/HTC_Vive)
+* [Apple Vision Pro](https://en.wikipedia.org/wiki/Apple_Vision_Pro)
+* [Oculus Go](https://en.wikipedia.org/wiki/Oculus_Go)
+* [Oculus Rift](https://en.wikipedia.org/wiki/Oculus_Rift)
 
 ## 🚀 Features
 
@@ -32,7 +41,7 @@ Work on all major web browsers that [A-Frame](https://aframe.io/docs/1.7.0/intro
 * **Stereo toggle** switch between monoscopic and stereo images (mono/top-bottom/side-by-side)
 * **Zooming** via mouse wheel or pinch gesture
 * **Interactive panning** with mouse or touch
-* **Fullscreen** mode via the bottom right button.
+* **Fullscreen** mode via the bottom right button. Opens in VR headset if supported.
 * **Screenshot** functionality (UI hidden in capture)
 * **Video controls**: play/pause, timeline slider
 
@@ -47,7 +56,7 @@ Work on all major web browsers that [A-Frame](https://aframe.io/docs/1.7.0/intro
 
 **Option 2 – Web Demo**
 
-1. Visit the [live demo](http://progamergov.github.io/html-360-viewer) in your browser.
+1. Visit the [live demo](https://progamergov.github.io/html-360-viewer) in your browser.
 2. Upload a 360° image or video to start viewing.
 
 **Option 3 – Local Copy**
@@ -59,16 +68,16 @@ Work on all major web browsers that [A-Frame](https://aframe.io/docs/1.7.0/intro
 
 ## 🕹️ Controls
 
-| Action             | How to Use                           |
-| ------------------ | ------------------------------------ |
-| Pan View           | Left-click + drag or touch + drag    |
-| Zoom               | Mouse wheel or pinch gesture         |
-| Fullscreen         | Use the browser's fullscreen control |
-| Stereo Toggle      | Bottom-left “Stereo” button          |
-| Screenshot         | Camera icon at bottom center         |
-| Upload/Reset Media | “Upload” button below controls       |
-| Play/Pause Video   | Play/pause button on video controls  |
-| Seek in Video      | Use the timeline slider              |
+| Action             | How to Use                                   |
+| ------------------ | -------------------------------------------- |
+| Pan View           | Left-click + drag or touch + drag            |
+| Zoom               | Mouse wheel or pinch gesture                 |
+| Fullscreen         | Browser fullscreen and VR headset control    |
+| Stereo Toggle      | Bottom-left "Stereo" button                  |
+| Screenshot         | Camera icon at bottom center                 |
+| Upload/Reset Media | “Upload” button below controls               |
+| Play/Pause Video   | Play/pause button on video controls          |
+| Seek in Video      | Use the timeline slider                      |
 
 
 ## 🤝 Contributing
@@ -82,7 +91,7 @@ If you use this library in your research or project, please refer to the include
 
 ### BibTeX
 ```bibtex
-@misc{egan2025browser360html,
+@misc{egan2025html360viewer,
   title={Browser-Based Viewer for 360 Images and Videos},
   author={Egan, Ben},
   year={2025},

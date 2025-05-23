@@ -25,7 +25,7 @@ Works on all major web browsers that [A-Frame](https://aframe.io/docs/1.7.0/intr
 * [Microsoft Edge](https://en.wikipedia.org/wiki/Microsoft_Edge)
 * [Safari](https://www.apple.com/ca/safari/)
 
-Works on [all VR headsets supported by Aframe](https://aframe.io/docs/1.7.0/introduction/vr-headsets-and-webxr-browsers.html).
+Works on [all VR headsets supported by A-Frame](https://aframe.io/docs/1.7.0/introduction/vr-headsets-and-webxr-browsers.html).
 
 * [Meta Quest](https://en.wikipedia.org/wiki/Meta_Quest) (all versions)
 * [Valve Index](https://en.wikipedia.org/wiki/Valve_Index)

@@ -14,7 +14,7 @@ Controls
 | Fullscreen         | Browser fullscreen and VR headset control  |
 | Stereo Toggle      | Bottom-left "Stereo" button                |
 | Screenshot         | Camera icon at bottom center               |
-| Upload/Reset Media | 'Upload' button below controls             |
+| Upload/Reset Media | "Upload" button below controls             |
 | Play/Pause Video   | Play/pause button on video controls        |
 | Seek in Video      | Use the timeline slider                    |
 
@@ -28,6 +28,8 @@ Loading from external URLs
 - Example: https://progamergov.github.io/html-360-viewer?url=https://example.com/example_image.jpg
 - This only works when the viewer is hosted via a local or remote web server (not directly opened as a file).
 - See here for more details: https://aframe.io/docs/1.7.0/introduction/installation.html#use-a-local-server
+- You can also provide the mono/stereo viewing mode that should be used when loading the image.
+- Example: https://progamergov.github.io/html-360-viewer?url=https://example.com/example_image.jpg&stereo=0
 
 
 BibTeX
@@ -406,7 +408,33 @@ Copyright (c) 2025 Ben Egan
     // Extract media URL from query parameters if present
     function getMediaUrlFromParams() {
         const urlParams = new URLSearchParams(window.location.search);
-        return urlParams.get('url') || urlParams.get('src');
+        const mediaUrl = urlParams.get('url') || urlParams.get('src');
+        const stereoParam = urlParams.get('stereo') || urlParams.get('s');
+
+        let stereoMode = 0; // Default: mono
+
+        if (stereoParam) {
+            const stereoLower = stereoParam.toLowerCase();
+            switch (stereoLower) {
+                case 'tb':
+                case 'vertical':
+                case '1':
+                stereoMode = 1;
+                break;
+                case 'lr':
+                case 'horizontal':
+                case '2':
+                stereoMode = 2;
+                break;
+                default:
+                    stereoMode = 0; // mono
+            }
+        }
+
+        return {
+            url: mediaUrl,
+            stereoMode: stereoMode
+        };
     }
 
     document.addEventListener('DOMContentLoaded', () => {
@@ -642,21 +670,25 @@ Copyright (c) 2025 Ben Egan
             },
 
             // Load media from URL if provided
-            loadMediaFromUrl: (url) => {
+            loadMediaFromUrl: (url, initialStereoMode = 0) => {
                 helpers.showLoading(true);
+
+                // Set the stereo mode before loading
+                state.stereoMode = initialStereoMode;
+                helpers.updateStereoButton();
 
                 // Determine if it's a video based on extension
                 const lowerUrl = url.toLowerCase();
                 const isVideo = ['.mp4', '.webm'].some(ext => lowerUrl.endsWith(ext));
 
                 if (isVideo) {
-                    // Handle video
+                    // Handle video (stereo mode not supported for videos in current implementation)
                     state.currentMedia = url;
                     state.isMediaImage = false;
+                    state.stereoMode = 0; // Reset stereo mode for videos
                     mediaHandlers.createVideoPanorama(url);
                 } else {
-                    // Default to treating as image for all other URLs
-                    // Try to load as image
+                    // Handle image with stereo support
                     const img = new Image();
                     img.crossOrigin = "Anonymous";
                     img.onload = () => {
@@ -889,9 +921,9 @@ Copyright (c) 2025 Ben Egan
         }, { passive: false });
 
         // Check for URL parameter and load media if present
-        const mediaUrl = getMediaUrlFromParams();
-        if (mediaUrl) {
-            mediaHandlers.loadMediaFromUrl(mediaUrl);
+        const mediaParams = getMediaUrlFromParams();
+        if (mediaParams.url) {
+            mediaHandlers.loadMediaFromUrl(mediaParams.url, mediaParams.stereoMode);
         }
     });
 </script>

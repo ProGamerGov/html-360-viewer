@@ -357,6 +357,19 @@ Copyright (c) 2025 Ben Egan
             font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
             font-size: 24px;
         }
+@media (max-width: 900px) {                 /* fires on every phone */
+  /* lift *your* control bar */
+  #controls { bottom: 80px !important; }
+
+  /* lift the Stereo toggle to the same line */
+  #stereoButton { bottom: 80px !important; }
+
+  /* pull A-Frame’s VR / fullscreen button up and over everything */
+  .a-enter-vr-button {
+    bottom: 80px !important;
+    z-index: 1000 !important;              /* in front of #controls */
+  }
+}
     </style>
 </head>
 <body>

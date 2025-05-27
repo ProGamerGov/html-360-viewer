@@ -355,31 +355,6 @@ Copyright (c) 2025 Ben Egan
             font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
             font-size: 24px;
         }
-        @media (pointer: coarse) and (max-width: 900px) {
-        
-          /* 1. base gap that works even when safe-area-inset-bottom is 0   */
-          :root {
-            --phone-gap: 60px;              /* tune: 48-60px works for most Androids */
-            --safe-bottom: env(safe-area-inset-bottom, 0px);
-            --bottom-ui: calc(var(--phone-gap) + var(--safe-bottom));
-          }
-        
-          /* 2. lift controls and stereo button */
-          #controls     { bottom: var(--bottom-ui); }
-          #stereoButton { bottom: var(--bottom-ui); }
-        
-          /* 3. lift A-Frame’s VR / fullscreen button above the controls row */
-          .a-enter-vr-button {
-            position: absolute !important;
-            right: 20px !important;
-            bottom: var(--bottom-ui) !important;
-            z-index: 60 !important;         /* make sure it sits on top */
-            pointer-events: auto !important;
-          }
-        }
-        @media (pointer: coarse) and (max-width: 900px) {
-          body { background: lime !important; }
-        }
     </style>
 </head>
 <body>

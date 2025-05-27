@@ -357,21 +357,24 @@ Copyright (c) 2025 Ben Egan
         }
         @media (pointer: coarse) and (max-width: 900px) {
         
-          /* lift bottom-anchored controls above the safe area */
-          :root { --safe-bottom: env(safe-area-inset-bottom, 0px); }
+          /* 1. base gap that works even when safe-area-inset-bottom is 0   */
+          :root {
+            --phone-gap: 60px;              /* tune: 48-60px works for most Androids */
+            --safe-bottom: env(safe-area-inset-bottom, 0px);
+            --bottom-ui: calc(var(--phone-gap) + var(--safe-bottom));
+          }
         
-          #controls     { bottom: calc(var(--safe-bottom) + 60px); }
-          #stereoButton { bottom: calc(var(--safe-bottom) + 20px); }
+          /* 2. lift controls and stereo button */
+          #controls     { bottom: var(--bottom-ui); }
+          #stereoButton { bottom: var(--bottom-ui); }
         
-          /* shrink long elements for narrow screens */
-          #videoSlider  { width: 200px; }
-        
-          /* keep A-Frame’s VR button visible */
+          /* 3. lift A-Frame’s VR / fullscreen button above the controls row */
           .a-enter-vr-button {
             position: absolute !important;
-            right: 20px  !important;
-            bottom: calc(var(--safe-bottom) + 20px) !important;
-            z-index: 60 !important;
+            right: 20px !important;
+            bottom: var(--bottom-ui) !important;
+            z-index: 60 !important;         /* make sure it sits on top */
+            pointer-events: auto !important;
           }
         }
     </style>

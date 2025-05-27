@@ -29,6 +29,7 @@ Loading from external URLs
 - This only works when the viewer is hosted via a local or remote web server (not directly opened as a file).
 - See here for more details: https://aframe.io/docs/1.7.0/introduction/installation.html#use-a-local-server
 - You can also provide the mono/stereo viewing mode that should be used when loading the image.
+- To specify the viewing mode to use, append '&stereo=0' for mono, '&stereo=1' for up/down stereo, and '&stereo=2' for right/left stereo.
 - Example: https://progamergov.github.io/html-360-viewer?url=https://example.com/example_image.jpg&stereo=0
 
 
@@ -357,19 +358,22 @@ Copyright (c) 2025 Ben Egan
             font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
             font-size: 24px;
         }
-@media (max-width: 900px) {                 /* fires on every phone */
-  /* lift *your* control bar */
-  #controls { bottom: 80px !important; }
+        /* ------------- Mobile Device Override ------------- */
+        @media (max-width: 900px) {
+          /* lift control bar */
+          #controls { bottom: 80px !important; }
 
-  /* lift the Stereo toggle to the same line */
-  #stereoButton { bottom: 80px !important; }
+          /* lift the Stereo toggle to the same line */
+          #stereoButton { bottom: 80px !important; }
 
-  /* pull A-Frame’s VR / fullscreen button up and over everything */
-  .a-enter-vr-button {
-    bottom: 80px !important;
-    z-index: 1000 !important;              /* in front of #controls */
-  }
-}
+          /* pull A-Frame’s VR / fullscreen button up and over everything */
+          /* .a-enter-vr-button { */
+          /* .a-fullscreen maybe? { */
+          .a-enter-vr-button {
+            bottom: 80px !important;
+            z-index: 1000 !important;
+          }
+        }
     </style>
 </head>
 <body>
@@ -484,6 +488,9 @@ Copyright (c) 2025 Ben Egan
             isDraggingFile: false
         };
 
+        // Check if mobile device
+        const isMobile = window.innerWidth <= 900;
+
         /* ------------------ Helpers ------------------ */
         const helpers = {
             showLoading: (flag) => {
@@ -593,7 +600,9 @@ Copyright (c) 2025 Ben Egan
 
                     state.scene = document.createElement('a-scene');
                     state.scene.setAttribute('embedded','');
-                    state.scene.setAttribute('xr-mode-ui','enabled: true');
+
+                    // Configure VR mode UI - on mobile, disable VR to force fullscreen fallback
+                    state.scene.setAttribute('xr-mode-ui', `enabled: true; enterVREnabled: ${!isMobile}; enterAREnabled: false`);
 
                     const sky = document.createElement('a-sky');
                     sky.setAttribute('src', processedSrc);
@@ -609,6 +618,17 @@ Copyright (c) 2025 Ben Egan
                     state.scene.appendChild(sky);
                     state.scene.appendChild(camera);
                     elements.aframeContainer.appendChild(state.scene);
+
+                    // For mobile, override VR availability after scene loads
+                    if (isMobile) {
+                        state.scene.addEventListener('loaded', () => {
+                            // Ensure the enter VR button shows as fullscreen
+                            const vrButton = document.querySelector('.a-enter-vr-button');
+                            if (vrButton) {
+                                vrButton.setAttribute('title', 'Enter Fullscreen');
+                            }
+                        });
+                    }
 
                     sky.addEventListener('loaded', () => helpers.showLoading(false));
                     sky.addEventListener('error', () => {
@@ -630,7 +650,9 @@ Copyright (c) 2025 Ben Egan
 
                 state.scene = document.createElement('a-scene');
                 state.scene.setAttribute('embedded','');
-                state.scene.setAttribute('xr-mode-ui','enabled: true');
+
+                // Configure VR mode UI - on mobile, disable VR to force fullscreen fallback
+                state.scene.setAttribute('xr-mode-ui', `enabled: true; enterVREnabled: ${!isMobile}; enterAREnabled: false`);
 
                 // Assets
                 const assets = document.createElement('a-assets');
@@ -661,6 +683,17 @@ Copyright (c) 2025 Ben Egan
                 state.scene.appendChild(camera);
 
                 elements.aframeContainer.appendChild(state.scene);
+
+                // For mobile, override VR availability after scene loads
+                if (isMobile) {
+                    state.scene.addEventListener('loaded', () => {
+                        // Ensure the enter VR button shows as fullscreen
+                        const vrButton = document.querySelector('.a-enter-vr-button');
+                        if (vrButton) {
+                            vrButton.setAttribute('title', 'Enter Fullscreen');
+                        }
+                    });
+                }
 
                 // UI state
                 elements.dropArea.classList.add('hidden');

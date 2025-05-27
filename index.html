@@ -355,6 +355,25 @@ Copyright (c) 2025 Ben Egan
             font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
             font-size: 24px;
         }
+        @media (pointer: coarse) and (max-width: 900px) {
+        
+          /* lift bottom-anchored controls above the safe area */
+          :root { --safe-bottom: env(safe-area-inset-bottom, 0px); }
+        
+          #controls     { bottom: calc(var(--safe-bottom) + 60px); }
+          #stereoButton { bottom: calc(var(--safe-bottom) + 20px); }
+        
+          /* shrink long elements for narrow screens */
+          #videoSlider  { width: 200px; }
+        
+          /* keep A-Frame’s VR button visible */
+          .a-enter-vr-button {
+            position: absolute !important;
+            right: 20px  !important;
+            bottom: calc(var(--safe-bottom) + 20px) !important;
+            z-index: 60 !important;
+          }
+        }
     </style>
 </head>
 <body>

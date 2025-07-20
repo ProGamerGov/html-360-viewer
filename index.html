@@ -361,17 +361,25 @@ Copyright (c) 2025 Ben Egan
 
         /* ------------- Mobile Device Override ------------- */
         @media (max-width: 900px) {
-          /* lift control bar */
-          #controls { bottom: 80px !important; }
+            /* lift control bar */
+            #controls { bottom: 80px !important; }
 
-          /* lift the Stereo toggle to the same line */
-          #stereoButton { bottom: 80px !important; }
+            /* lift the Stereo toggle to the same line */
+            #stereoButton { bottom: 80px !important; }
 
-          /* pull A-Frame’s VR / fullscreen button up and over everything */
-          .a-enter-vr-button {
-            bottom: 80px !important;
-            z-index: 1000 !important;
-          }
+            /* pull A-Frame’s VR / fullscreen button up and over everything */
+            .a-enter-vr-button {
+                bottom: 80px !important;
+                z-index: 1000 !important;
+            }
+        }
+
+        /* ------------- Hide Image Highlighting ------------- */
+        ::selection {
+            background: transparent;
+        }
+        ::moz-selection {
+            background: transparent;
         }
     </style>
 </head>

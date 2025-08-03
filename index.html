@@ -845,8 +845,8 @@ Copyright (c) 2025 Ben Egan
         // Global drag and drop events
         document.addEventListener('dragenter', (e) => {
             helpers.preventDefaults(e);
-            // Only show if there's already media loaded
-            if (state.scene && !state.isDraggingFile) {
+            // Only show if there's already media loaded AND files are being dragged
+            if (state.scene && !state.isDraggingFile && e.dataTransfer && e.dataTransfer.types.includes('Files')) {
                 state.isDraggingFile = true;
                 helpers.showGlobalDropOverlay(true);
             }
@@ -854,8 +854,8 @@ Copyright (c) 2025 Ben Egan
 
         document.addEventListener('dragover', (e) => {
             helpers.preventDefaults(e);
-            // Keep the overlay visible while dragging
-            if (state.isDraggingFile) {
+            // Keep the overlay visible while dragging files
+            if (state.isDraggingFile && e.dataTransfer && e.dataTransfer.types.includes('Files')) {
                 helpers.showGlobalDropOverlay(true);
             }
         });
@@ -943,6 +943,14 @@ Copyright (c) 2025 Ben Egan
                 e.preventDefault();
             }
         }, { passive: false });
+
+        // Remove default click & drag feature
+        document.addEventListener('dragstart', (e) => {
+            if (e.target.tagName === 'CANVAS' || e.target.closest('a-scene')) {
+                e.preventDefault();
+                return false;
+            }
+        });
 
         // Check for URL parameter and load media if present
         const mediaParams = getMediaUrlFromParams();

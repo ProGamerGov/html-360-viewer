@@ -608,7 +608,9 @@ Copyright (c) 2025 Ben Egan
 
                     const sky = document.createElement('a-sky');
                     sky.setAttribute('src', processedSrc);
+                    sky.setAttribute('material', 'npot: true');
                     sky.setAttribute('rotation', '0 -90 0');
+                    sky.setAttribute('geometry', 'segmentsHeight: 64; segmentsWidth: 128');
 
                     const camera = document.createElement('a-entity');
                     camera.setAttribute('camera', 'fov: 80');

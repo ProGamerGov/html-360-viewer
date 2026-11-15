@@ -638,7 +638,7 @@ Copyright (c) 2025 Ben Egan
                     sky.setAttribute('material', 'minFilter: linear-mipmap-linear; magFilter: linear');
                     sky.setAttribute('material', 'src', mediaHandlers.skySource(img, src));
                     sky.setAttribute('rotation', '0 -90 0');
-                    sky.setAttribute('geometry', 'segmentsHeight: 64; segmentsWidth: 128');
+                    sky.setAttribute('geometry', 'segmentsHeight: 128; segmentsWidth: 256');
 
                     const camera = document.createElement('a-entity');
                     camera.setAttribute('camera', 'fov: 80');
@@ -694,6 +694,7 @@ Copyright (c) 2025 Ben Egan
                 // Videosphere
                 const vidsphere = document.createElement('a-videosphere');
                 vidsphere.setAttribute('src', '#videoAsset');
+                vidsphere.setAttribute('geometry', 'segmentsHeight: 64; segmentsWidth: 128');
                 vidsphere.setAttribute('rotation', '0 -90 0');
                 state.scene.appendChild(vidsphere);
 

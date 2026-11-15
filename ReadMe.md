@@ -80,6 +80,22 @@ Works on [all VR headsets supported by A-Frame](https://aframe.io/docs/1.8.0/int
 | Seek in Video      | Use the timeline slider                      |
 
 
+## 🔗 URL Parameters
+
+Media can be loaded directly from an external URL by passing **hash parameters** after the `#` in the viewer URL. This only works when the viewer is hosted on a local or remote web server (it does not work when the file is opened directly from disk).
+
+| Parameter      | Description                                                 | Values                                                                                            |
+| -------------- | ----------------------------------------------------------- | ------------------------------------------------------------------------------------------------- |
+| `url` or `src` | Direct link to the media to load (image or MP4/WebM video)  | Any valid media URL                                                                               |
+| `stereo`       | Stereo viewing mode to use when loading an image            | `0` monoscopic (default), `1` or `tb`/`vertical` for top/bottom, `2` or `lr`/`horizontal` for left/right |
+
+**Example**
+
+```
+https://progamergov.github.io/html-360-viewer#url=https://example.com/example_image.jpg&stereo=1
+```
+
+
 ## 🤝 Contributing
 
 Contributions are welcome! Please feel free to submit a Pull Request.

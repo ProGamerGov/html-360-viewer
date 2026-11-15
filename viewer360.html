@@ -24,13 +24,13 @@ Additonal info
 
 
 Loading from external URLs
-- Images and videos can be loaded from other websites by appending '?url=' or '?src=' to the viewer URL, followed by the direct media link.
-- Example: https://progamergov.github.io/html-360-viewer?url=https://example.com/example_image.jpg
+- Images and videos can be loaded from other websites by appending '#url=' or '#src=' to the viewer URL, followed by the direct media link.
+- Example: https://progamergov.github.io/html-360-viewer#url=https://example.com/example_image.jpg
 - This only works when the viewer is hosted via a local or remote web server (not directly opened as a file).
 - See here for more details: https://aframe.io/docs/1.8.0/introduction/installation.html#use-a-local-server
 - You can also provide the mono/stereo viewing mode that should be used when loading the image.
 - To specify the viewing mode to use, append '&stereo=0' for monoscopic (default), '&stereo=1' for up/down stereo, and '&stereo=2' for right/left stereo.
-- Example: https://progamergov.github.io/html-360-viewer?url=https://example.com/example_image.jpg&stereo=0
+- Example: https://progamergov.github.io/html-360-viewer#url=https://example.com/example_image.jpg&stereo=0
 
 
 BibTeX
@@ -429,11 +429,11 @@ Copyright (c) 2025 Ben Egan
 </div>
 
 <script>
-    // Extract media URL from query parameters if present
+    // Extract media URL from hash parameters if present
     function getMediaUrlFromParams() {
-        const urlParams = new URLSearchParams(window.location.search);
-        const mediaUrl = urlParams.get('url') || urlParams.get('src');
-        const stereoParam = urlParams.get('stereo');
+        const hashParams = new URLSearchParams(window.location.hash.replace(/^#/, ''));
+        const mediaUrl = hashParams.get('url') || hashParams.get('src');
+        const stereoParam = hashParams.get('stereo');
 
         let stereoMode = 0; // Default: mono
 
@@ -1010,7 +1010,7 @@ Copyright (c) 2025 Ben Egan
             }
         });
 
-        // Check for URL parameter and load media if present
+        // Check for hash parameters and load media if present
         const mediaParams = getMediaUrlFromParams();
         if (mediaParams.url) {
             mediaHandlers.loadMediaFromUrl(mediaParams.url, mediaParams.stereoMode);

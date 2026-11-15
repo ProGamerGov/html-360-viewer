@@ -27,7 +27,7 @@ Loading from external URLs
 - Images and videos can be loaded from other websites by appending '?url=' or '?src=' to the viewer URL, followed by the direct media link.
 - Example: https://progamergov.github.io/html-360-viewer?url=https://example.com/example_image.jpg
 - This only works when the viewer is hosted via a local or remote web server (not directly opened as a file).
-- See here for more details: https://aframe.io/docs/1.7.0/introduction/installation.html#use-a-local-server
+- See here for more details: https://aframe.io/docs/1.8.0/introduction/installation.html#use-a-local-server
 - You can also provide the mono/stereo viewing mode that should be used when loading the image.
 - To specify the viewing mode to use, append '&stereo=0' for monoscopic (default), '&stereo=1' for up/down stereo, and '&stereo=2' for right/left stereo.
 - Example: https://progamergov.github.io/html-360-viewer?url=https://example.com/example_image.jpg&stereo=0
@@ -65,7 +65,7 @@ Copyright (c) 2025 Ben Egan
     <title>360° Panorama & Video Viewer</title>
 
     <!-- A-Frame -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/aframe/1.7.0/aframe.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/aframe/1.8.0/aframe-v1.8.0.min.js"></script>
 
     <!-- Material Symbols for icons -->
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" />
@@ -565,30 +565,12 @@ Copyright (c) 2025 Ben Egan
                 reader.readAsDataURL(file);
             },
 
-            processStereoImage: (src, callback) => {
+            // Verify the image loads so we can report errors. The source is then used
+            // as-is: the pixels are never re-encoded.
+            verifyImage: (src, callback) => {
                 const img = new Image();
                 img.crossOrigin = "Anonymous";
-                img.onload = () => {
-                    const canvas = document.createElement('canvas');
-                    const ctx = canvas.getContext('2d');
-
-                    if (state.stereoMode === 1) { // Vertical (top/bottom)
-                        canvas.width = img.width;
-                        canvas.height = img.height / 2;
-                        ctx.drawImage(img, 0, 0, img.width, img.height / 2, 0, 0, canvas.width, canvas.height);
-                    } else if (state.stereoMode === 2) { // Horizontal (left/right)
-                        canvas.width = img.width / 2;
-                        canvas.height = img.height;
-                        ctx.drawImage(img, 0, 0, img.width / 2, img.height, 0, 0, canvas.width, canvas.height);
-                    } else {
-                        // Non-stereo, use full image
-                        canvas.width = img.width;
-                        canvas.height = img.height;
-                        ctx.drawImage(img, 0, 0);
-                    }
-
-                    callback(canvas.toDataURL('image/jpeg', 0.95));
-                };
+                img.onload = () => callback();
                 img.onerror = () => {
                     helpers.showLoading(false);
                     alert('Error loading image.');
@@ -596,21 +578,38 @@ Copyright (c) 2025 Ben Egan
                 img.src = src;
             },
 
+            // Sky material string. Stereo images are cropped to a single eye by
+            // scaling and offsetting the texture coordinates on the GPU, which
+            // replaces the previous lossy canvas + JPEG round-trip. Mipmapping and
+            // anisotropic filtering are enabled for smoother minification.
+            skyMaterial: () => {
+                let material = 'minFilter: linear-mipmap-linear; magFilter: linear';
+                if (state.stereoMode === 1) { // Top/bottom layout -> top eye
+                    material += '; repeat: 1 0.5; offset: 0 0.5';
+                } else if (state.stereoMode === 2) { // Left/right layout -> left eye
+                    material += '; repeat: 0.5 1; offset: 0 0';
+                }
+                return material;
+            },
+
             createImagePanorama: (src) => {
                 helpers.showLoading(true);
 
-                mediaHandlers.processStereoImage(src, (processedSrc) => {
+                mediaHandlers.verifyImage(src, () => {
                     interfaceHandlers.cleanupScene();
 
                     state.scene = document.createElement('a-scene');
                     state.scene.setAttribute('embedded','');
                     state.scene.setAttribute('xr-mode-ui','enabled: true');
+                    // antialias: smooth edges; anisotropy: sharper textures at
+                    // grazing angles; foveationLevel 0: full peripheral sharpness in VR.
+                    state.scene.setAttribute('renderer','antialias: true; anisotropy: 8; foveationLevel: 0');
 
                     const sky = document.createElement('a-sky');
-                    sky.setAttribute('src', processedSrc);
-                    sky.setAttribute('material', 'npot: true');
+                    sky.setAttribute('src', src);
+                    sky.setAttribute('material', mediaHandlers.skyMaterial());
                     sky.setAttribute('rotation', '0 -90 0');
-                    sky.setAttribute('geometry', 'segmentsHeight: 64; segmentsWidth: 128');
+                    sky.setAttribute('geometry', 'segmentsHeight: 128; segmentsWidth: 256');
 
                     const camera = document.createElement('a-entity');
                     camera.setAttribute('camera', 'fov: 80');
@@ -644,6 +643,10 @@ Copyright (c) 2025 Ben Egan
                 state.scene = document.createElement('a-scene');
                 state.scene.setAttribute('embedded','');
                 state.scene.setAttribute('xr-mode-ui','enabled: true');
+                // antialias: smooth edges; foveationLevel 0: full peripheral
+                // sharpness in VR. Anisotropy is left off for video since its
+                // texture has no mipmaps (they can't be regenerated per frame).
+                state.scene.setAttribute('renderer','antialias: true; foveationLevel: 0');
 
                 // Assets
                 const assets = document.createElement('a-assets');
@@ -662,6 +665,7 @@ Copyright (c) 2025 Ben Egan
                 // Videosphere
                 const vidsphere = document.createElement('a-videosphere');
                 vidsphere.setAttribute('src', '#videoAsset');
+                vidsphere.setAttribute('geometry', 'segmentsHeight: 64; segmentsWidth: 128');
                 vidsphere.setAttribute('rotation', '0 -90 0');
                 state.scene.appendChild(vidsphere);
 

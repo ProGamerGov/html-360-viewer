@@ -27,7 +27,7 @@ Loading from external URLs
 - Images and videos can be loaded from other websites by appending '?url=' or '?src=' to the viewer URL, followed by the direct media link.
 - Example: https://progamergov.github.io/html-360-viewer?url=https://example.com/example_image.jpg
 - This only works when the viewer is hosted via a local or remote web server (not directly opened as a file).
-- See here for more details: https://aframe.io/docs/1.7.0/introduction/installation.html#use-a-local-server
+- See here for more details: https://aframe.io/docs/1.8.0/introduction/installation.html#use-a-local-server
 - You can also provide the mono/stereo viewing mode that should be used when loading the image.
 - To specify the viewing mode to use, append '&stereo=0' for monoscopic (default), '&stereo=1' for up/down stereo, and '&stereo=2' for right/left stereo.
 - Example: https://progamergov.github.io/html-360-viewer?url=https://example.com/example_image.jpg&stereo=0
@@ -65,7 +65,7 @@ Copyright (c) 2025 Ben Egan
     <title>360° Panorama & Video Viewer</title>
 
     <!-- A-Frame -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/aframe/1.7.0/aframe.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/aframe/1.8.0/aframe-v1.8.0.min.js"></script>
 
     <!-- Material Symbols for icons -->
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" />
@@ -608,7 +608,7 @@ Copyright (c) 2025 Ben Egan
 
                     const sky = document.createElement('a-sky');
                     sky.setAttribute('src', processedSrc);
-                    sky.setAttribute('material', 'npot: true');
+                    sky.setAttribute('material', 'minFilter: linear');
                     sky.setAttribute('rotation', '0 -90 0');
                     sky.setAttribute('geometry', 'segmentsHeight: 64; segmentsWidth: 128');
 

@@ -492,7 +492,9 @@ Copyright (c) 2025 Ben Egan
             currentMedia: null,
             isMediaImage: false,
             stereoMode: 0,
-            isDraggingFile: false
+            isDraggingFile: false,
+            panorama: null,
+            snapTurnEngaged: false
         };
 
         /* ------------------ Helpers ------------------ */
@@ -592,6 +594,34 @@ Copyright (c) 2025 Ben Egan
                 return material;
             },
 
+            // Snap-turn the panorama in 30° steps when a VR controller's thumbstick
+            // is pushed left or right. Triggers once per push, until the stick
+            // returns to the center.
+            onAxisMove: (evt) => {
+                const axes = evt.detail.axis;
+                const x = axes.length > 2 ? axes[2] : axes[0];
+
+                if (Math.abs(x) < 0.7) {
+                    state.snapTurnEngaged = false;
+                    return;
+                }
+                if (state.snapTurnEngaged || !state.panorama) return;
+
+                state.snapTurnEngaged = true;
+                state.panorama.object3D.rotation.y += (x > 0 ? 1 : -1) * 30 * Math.PI / 180;
+            },
+
+            // Add a bare tracked-controls entity per hand. Only the axis events are
+            // needed, so no controller model or laser pointer is attached.
+            addControllers: (scene) => {
+                ['left', 'right'].forEach((hand) => {
+                    const controller = document.createElement('a-entity');
+                    controller.setAttribute('tracked-controls', 'hand: ' + hand);
+                    controller.addEventListener('axismove', mediaHandlers.onAxisMove);
+                    scene.appendChild(controller);
+                });
+            },
+
             createImagePanorama: (src) => {
                 helpers.showLoading(true);
 
@@ -620,6 +650,8 @@ Copyright (c) 2025 Ben Egan
 
                     state.scene.appendChild(sky);
                     state.scene.appendChild(camera);
+                    mediaHandlers.addControllers(state.scene);
+                    state.panorama = sky;
                     elements.aframeContainer.appendChild(state.scene);
 
                     sky.addEventListener('loaded', () => helpers.showLoading(false));
@@ -677,6 +709,8 @@ Copyright (c) 2025 Ben Egan
                 camera.setAttribute('position', '0 1.6 0');
                 camera.setAttribute('id', 'mainCamera');
                 state.scene.appendChild(camera);
+                mediaHandlers.addControllers(state.scene);
+                state.panorama = vidsphere;
 
                 elements.aframeContainer.appendChild(state.scene);
 
@@ -805,6 +839,8 @@ Copyright (c) 2025 Ben Egan
                     state.videoElement.pause();
                     state.videoElement = null;
                 }
+                state.panorama = null;
+                state.snapTurnEngaged = false;
                 elements.controls.style.display = 'none';
                 elements.videoControls.style.display = 'none';
                 elements.zoomInfo.style.display = 'none';

@@ -77,7 +77,9 @@ Copyright (c) 2025 Ben Egan
             margin: 0;
             font-family: Arial, sans-serif;
             overflow: hidden;
-            touch-action: pan-x pan-y; /* disable pinch-zoom */
+            /* full-screen viewer handles pan and pinch itself; keep the browser
+               from claiming a drag as a scroll/zoom gesture */
+            touch-action: none;
         }
         #container {
             width: 100%;

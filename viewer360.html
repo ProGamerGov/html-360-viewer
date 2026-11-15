@@ -497,6 +497,11 @@ Copyright (c) 2025 Ben Egan
             snapTurnEngaged: false
         };
 
+        // Supersample the XR (VR) framebuffer. A-Frame exposes no framebuffer
+        // scale, so it is applied to three.js instead (see setXRQuality). Values
+        // above 1 are sharper but cost GPU; 1 disables supersampling.
+        const XR_FRAMEBUFFER_SCALE = 1.2;
+
         /* ------------------ Helpers ------------------ */
         const helpers = {
             showLoading: (flag) => {
@@ -629,6 +634,19 @@ Copyright (c) 2025 Ben Egan
                 });
             },
 
+            // A-Frame has no XR framebuffer scale option, so reach into three.js.
+            // three reads the factor when it creates the XRWebGLLayer at session
+            // start and refuses to change it while presenting, so apply it once
+            // the renderer is ready.
+            setXRQuality: (scene) => {
+                scene.addEventListener('renderstart', () => {
+                    const xr = scene.renderer && scene.renderer.xr;
+                    if (xr && xr.setFramebufferScaleFactor) {
+                        xr.setFramebufferScaleFactor(XR_FRAMEBUFFER_SCALE);
+                    }
+                });
+            },
+
             // Add a bare tracked-controls entity per hand. Only the axis events are
             // needed, so no controller model or laser pointer is attached.
             addControllers: (scene) => {
@@ -671,6 +689,7 @@ Copyright (c) 2025 Ben Egan
                     state.scene.appendChild(sky);
                     state.scene.appendChild(camera);
                     mediaHandlers.addControllers(state.scene);
+                    mediaHandlers.setXRQuality(state.scene);
                     state.panorama = sky;
                     elements.aframeContainer.appendChild(state.scene);
 
@@ -730,6 +749,7 @@ Copyright (c) 2025 Ben Egan
                 camera.setAttribute('id', 'mainCamera');
                 state.scene.appendChild(camera);
                 mediaHandlers.addControllers(state.scene);
+                mediaHandlers.setXRQuality(state.scene);
                 state.panorama = vidsphere;
 
                 elements.aframeContainer.appendChild(state.scene);

@@ -286,7 +286,6 @@ Copyright (c) 2025 Ben Egan
             cursor: pointer;
             font-size: 14px;
             z-index: 25;
-            display: none;
             margin-left: 8px;
             margin-top: 10px;
             height: 36px;
@@ -634,7 +633,7 @@ Copyright (c) 2025 Ben Egan
                     elements.zoomInfo.style.display = 'block';
                     elements.stereoButton.style.display = 'block';
                     elements.resetButton.style.display = 'block';
-                    elements.screenshotButton.style.display = 'block';
+                    elements.screenshotButton.style.display = 'flex';
                 });
             },
 
@@ -683,7 +682,7 @@ Copyright (c) 2025 Ben Egan
                 elements.zoomInfo.style.display = 'block';
                 elements.stereoButton.style.display = 'none'; // Hide stereo button for videos
                 elements.resetButton.style.display = 'block';
-                elements.screenshotButton.style.display = 'block';
+                elements.screenshotButton.style.display = 'flex';
                 state.isPlaying = true;
                 helpers.updatePlayPauseIcon();
 
@@ -691,7 +690,15 @@ Copyright (c) 2025 Ben Egan
                 state.videoElement.addEventListener('loadedmetadata', () => {
                     helpers.showLoading(false);
                     elements.videoSlider.value = 0;
-                    state.videoElement.play().catch(() => {}); // autoplay may require user gesture
+                    // Autoplay may be refused without a user gesture, so sync the
+                    // play/pause button with what actually happened.
+                    state.videoElement.play().then(() => {
+                        state.isPlaying = true;
+                        helpers.updatePlayPauseIcon();
+                    }).catch(() => {
+                        state.isPlaying = false;
+                        helpers.updatePlayPauseIcon();
+                    });
                 });
                 state.videoElement.addEventListener('timeupdate', helpers.updateSlider);
             },
@@ -705,8 +712,9 @@ Copyright (c) 2025 Ben Egan
                 helpers.updateStereoButton();
 
                 // Determine if it's a video based on extension
-                const lowerUrl = url.toLowerCase();
-                const isVideo = ['.mp4', '.webm'].some(ext => lowerUrl.endsWith(ext));
+                // Ignore the query string and fragment when checking the extension.
+                const path = url.toLowerCase().split('#')[0].split('?')[0];
+                const isVideo = ['.mp4', '.webm'].some(ext => path.endsWith(ext));
 
                 if (isVideo) {
                     // Handle video (stereo mode not supported for videos in current implementation)
@@ -907,7 +915,16 @@ Copyright (c) 2025 Ben Egan
         elements.screenshotButton.addEventListener('click', interfaceHandlers.takeScreenshot);
 
         // Reset button
-        elements.resetButton.addEventListener('click', interfaceHandlers.cleanupScene);
+        elements.resetButton.addEventListener('click', () => {
+            // cleanupScene tears down the scene but deliberately leaves the media
+            // state alone, since it is also used when rebuilding a panorama. Clear
+            // it here, where the user actually means "start over".
+            interfaceHandlers.cleanupScene();
+            state.currentMedia = null;
+            state.isMediaImage = false;
+            state.stereoMode = 0;
+            helpers.updateStereoButton();
+        });
 
         // Stereo toggle
         elements.stereoButton.addEventListener('click', () => {

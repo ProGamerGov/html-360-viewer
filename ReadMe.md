@@ -84,6 +84,8 @@ Works on [all VR headsets supported by A-Frame](https://aframe.io/docs/1.8.0/int
 
 Media can be loaded directly from an external URL by passing **hash parameters** after the `#` in the viewer URL. This only works when the viewer is hosted on a local or remote web server (it does not work when the file is opened directly from disk).
 
+Links created before the switch that pass query parameters (`?url=...`, `?stereo=...`) still work: those parameters are moved into the hash automatically.
+
 | Parameter      | Description                                                 | Values                                                                                            |
 | -------------- | ----------------------------------------------------------- | ------------------------------------------------------------------------------------------------- |
 | `url` or `src` | Direct link to the media to load (image or MP4/WebM video)  | Any valid media URL                                                                               |

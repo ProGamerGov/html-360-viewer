@@ -77,7 +77,9 @@ Copyright (c) 2025 Ben Egan
             margin: 0;
             font-family: Arial, sans-serif;
             overflow: hidden;
-            touch-action: pan-x pan-y; /* disable pinch-zoom */
+            /* full-screen viewer handles pan and pinch itself; keep the browser
+               from claiming a drag as a scroll/zoom gesture */
+            touch-action: none;
         }
         #container {
             width: 100%;
@@ -506,6 +508,22 @@ Copyright (c) 2025 Ben Egan
                 elements.zoomInfo.textContent = `Zoom: ${Math.round(state.currentFov)}°`;
                 elements.zoomInfo.style.background = 'rgba(66,133,244,0.7)';
                 setTimeout(() => elements.zoomInfo.style.background = 'rgba(0,0,0,0.55)', 300);
+            },
+
+            // A-Frame's look-controls only yaws the camera on touch drags (its
+            // onTouchMove ignores the vertical axis), so on a touch device such as a
+            // headset browser running in 2D a drag cannot look up or down. Apply the
+            // vertical part of the drag to look-controls' pitch object ourselves,
+            // matching the direction it already uses for touch yaw.
+            tiltView: (deltaY) => {
+                const cam = document.querySelector('#mainCamera');
+                const lookControls = cam && cam.components['look-controls'];
+                if (!lookControls || !lookControls.pitchObject) return;
+
+                const height = (state.scene && state.scene.canvas.clientHeight) || window.innerHeight;
+                const pitch = lookControls.pitchObject;
+                pitch.rotation.x += 2 * Math.PI * deltaY / height * 0.5;
+                pitch.rotation.x = Math.max(-Math.PI / 2, Math.min(Math.PI / 2, pitch.rotation.x));
             },
 
             updatePlayPauseIcon: () => {
@@ -948,8 +966,10 @@ Copyright (c) 2025 Ben Egan
 
         // Pinch-to-zoom on laptop track pads and mobile devices
         let pinchStartDist = 0;
+        let touchStartY = 0;
         document.addEventListener('touchstart', (e) => {
             if (e.touches.length === 2) pinchStartDist = helpers.dist(e.touches);
+            if (e.touches.length === 1) touchStartY = e.touches[0].pageY;
         });
 
         document.addEventListener('touchmove', (e) => {
@@ -960,6 +980,9 @@ Copyright (c) 2025 Ben Egan
                     pinchStartDist = d;
                 }
                 e.preventDefault();
+            } else if (e.touches.length === 1 && state.scene && !state.scene.is('vr-mode')) {
+                helpers.tiltView(e.touches[0].pageY - touchStartY);
+                touchStartY = e.touches[0].pageY;
             }
         }, { passive: false });
 

@@ -441,10 +441,16 @@ Copyright (c) 2025 Ben Egan
         const moved = ['url', 'src', 'stereo'].filter(
             (name) => !hashParams.has(name) && queryParams.has(name));
         if (moved.length) {
-            const pairs = window.location.search.slice(1).split('&').filter(
-                (pair) => moved.includes(pair.split('=')[0]));
+            const pairs = window.location.search.slice(1).split('&').filter(Boolean);
+            const isMoved = (pair) => moved.includes(pair.split('=')[0]);
             const hash = window.location.hash.replace(/^#/, '');
-            window.history.replaceState(null, '', '#' + [hash].concat(pairs).filter(Boolean).join('&'));
+            const remaining = pairs.filter((pair) => !isMoved(pair));
+            // Replace the whole URL instead of only the fragment: a bare '#...'
+            // keeps the existing query string, which would leave the media URL in
+            // both places (?url=...#url=...).
+            window.history.replaceState(null, '', window.location.pathname +
+                (remaining.length ? '?' + remaining.join('&') : '') +
+                '#' + [hash].concat(pairs.filter(isMoved)).filter(Boolean).join('&'));
         }
 
         const params = new URLSearchParams(window.location.hash.replace(/^#/, ''));

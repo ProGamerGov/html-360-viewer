@@ -24,13 +24,14 @@ Additonal info
 
 
 Loading from external URLs
-- Images and videos can be loaded from other websites by appending '?url=' or '?src=' to the viewer URL, followed by the direct media link.
-- Example: https://progamergov.github.io/html-360-viewer?url=https://example.com/example_image.jpg
+- Images and videos can be loaded from other websites by appending '#url=' or '#src=' to the viewer URL, followed by the direct media link.
+- Example: https://progamergov.github.io/html-360-viewer#url=https://example.com/example_image.jpg
 - This only works when the viewer is hosted via a local or remote web server (not directly opened as a file).
 - See here for more details: https://aframe.io/docs/1.8.0/introduction/installation.html#use-a-local-server
 - You can also provide the mono/stereo viewing mode that should be used when loading the image.
 - To specify the viewing mode to use, append '&stereo=0' for monoscopic (default), '&stereo=1' for up/down stereo, and '&stereo=2' for right/left stereo.
-- Example: https://progamergov.github.io/html-360-viewer?url=https://example.com/example_image.jpg&stereo=0
+- Example: https://progamergov.github.io/html-360-viewer#url=https://example.com/example_image.jpg&stereo=0
+- Query parameters ('?url=' and '?stereo=') from older links are moved into the hash automatically.
 
 
 BibTeX
@@ -429,11 +430,32 @@ Copyright (c) 2025 Ben Egan
 </div>
 
 <script>
-    // Extract media URL from query parameters if present
+    // Media parameters may arrive in the hash (#url=...) or, for links and
+    // bookmarks created before the switch, in the query string (?url=...). Query
+    // parameters are moved into the hash verbatim, so old links keep working and
+    // the media URL stops being sent to the server; replaceState avoids a reload.
     function getMediaUrlFromParams() {
-        const urlParams = new URLSearchParams(window.location.search);
-        const mediaUrl = urlParams.get('url') || urlParams.get('src');
-        const stereoParam = urlParams.get('stereo');
+        const hashParams = new URLSearchParams(window.location.hash.replace(/^#/, ''));
+        const queryParams = new URLSearchParams(window.location.search);
+
+        const moved = ['url', 'src', 'stereo'].filter(
+            (name) => !hashParams.has(name) && queryParams.has(name));
+        if (moved.length) {
+            const pairs = window.location.search.slice(1).split('&').filter(Boolean);
+            const isMoved = (pair) => moved.includes(pair.split('=')[0]);
+            const hash = window.location.hash.replace(/^#/, '');
+            const remaining = pairs.filter((pair) => !isMoved(pair));
+            // Replace the whole URL instead of only the fragment: a bare '#...'
+            // keeps the existing query string, which would leave the media URL in
+            // both places (?url=...#url=...).
+            window.history.replaceState(null, '', window.location.pathname +
+                (remaining.length ? '?' + remaining.join('&') : '') +
+                '#' + [hash].concat(pairs.filter(isMoved)).filter(Boolean).join('&'));
+        }
+
+        const params = new URLSearchParams(window.location.hash.replace(/^#/, ''));
+        const mediaUrl = params.get('url') || params.get('src');
+        const stereoParam = params.get('stereo');
 
         let stereoMode = 0; // Default: mono
 
@@ -492,8 +514,15 @@ Copyright (c) 2025 Ben Egan
             currentMedia: null,
             isMediaImage: false,
             stereoMode: 0,
-            isDraggingFile: false
+            isDraggingFile: false,
+            panorama: null,
+            snapTurnEngaged: false
         };
+
+        // Supersample the XR (VR) framebuffer. A-Frame exposes no framebuffer
+        // scale, so it is applied to three.js instead (see setXRQuality). Values
+        // above 1 are sharper but cost GPU; 1 disables supersampling.
+        const XR_FRAMEBUFFER_SCALE = 1.2;
 
         /* ------------------ Helpers ------------------ */
         const helpers = {
@@ -619,6 +648,54 @@ Copyright (c) 2025 Ben Egan
                 return canvas;
             },
 
+            // Snap-turn the panorama in 30° steps when a VR controller's thumbstick
+            // is pushed left or right. Triggers once per push, until the stick
+            // returns to the center.
+            onAxisMove: (evt) => {
+                const axes = evt.detail.axis;
+                const x = axes.length > 2 ? axes[2] : axes[0];
+
+                if (Math.abs(x) < 0.7) {
+                    state.snapTurnEngaged = false;
+                    return;
+                }
+                if (state.snapTurnEngaged || !state.panorama) return;
+
+                state.snapTurnEngaged = true;
+                // Rotate through the rotation component so its data stays in sync
+                // (getAttribute('rotation') returns degrees).
+                const rotation = state.panorama.getAttribute('rotation');
+                state.panorama.setAttribute('rotation', {
+                    x: rotation.x,
+                    y: rotation.y + (x > 0 ? 1 : -1) * 30,
+                    z: rotation.z
+                });
+            },
+
+            // A-Frame has no XR framebuffer scale option, so reach into three.js.
+            // three reads the factor when it creates the XRWebGLLayer at session
+            // start and refuses to change it while presenting, so apply it once
+            // the renderer is ready.
+            setXRQuality: (scene) => {
+                scene.addEventListener('renderstart', () => {
+                    const xr = scene.renderer && scene.renderer.xr;
+                    if (xr && xr.setFramebufferScaleFactor) {
+                        xr.setFramebufferScaleFactor(XR_FRAMEBUFFER_SCALE);
+                    }
+                });
+            },
+
+            // Add a bare tracked-controls entity per hand. Only the axis events are
+            // needed, so no controller model or laser pointer is attached.
+            addControllers: (scene) => {
+                ['left', 'right'].forEach((hand) => {
+                    const controller = document.createElement('a-entity');
+                    controller.setAttribute('tracked-controls', 'hand: ' + hand);
+                    controller.addEventListener('axismove', mediaHandlers.onAxisMove);
+                    scene.appendChild(controller);
+                });
+            },
+
             createImagePanorama: (src) => {
                 helpers.showLoading(true);
 
@@ -638,7 +715,7 @@ Copyright (c) 2025 Ben Egan
                     sky.setAttribute('material', 'minFilter: linear-mipmap-linear; magFilter: linear');
                     sky.setAttribute('material', 'src', mediaHandlers.skySource(img, src));
                     sky.setAttribute('rotation', '0 -90 0');
-                    sky.setAttribute('geometry', 'segmentsHeight: 64; segmentsWidth: 128');
+                    sky.setAttribute('geometry', 'segmentsHeight: 128; segmentsWidth: 256');
 
                     const camera = document.createElement('a-entity');
                     camera.setAttribute('camera', 'fov: 80');
@@ -649,6 +726,9 @@ Copyright (c) 2025 Ben Egan
 
                     state.scene.appendChild(sky);
                     state.scene.appendChild(camera);
+                    mediaHandlers.addControllers(state.scene);
+                    mediaHandlers.setXRQuality(state.scene);
+                    state.panorama = sky;
                     elements.aframeContainer.appendChild(state.scene);
 
                     sky.addEventListener('loaded', () => helpers.showLoading(false));
@@ -694,6 +774,7 @@ Copyright (c) 2025 Ben Egan
                 // Videosphere
                 const vidsphere = document.createElement('a-videosphere');
                 vidsphere.setAttribute('src', '#videoAsset');
+                vidsphere.setAttribute('geometry', 'segmentsHeight: 64; segmentsWidth: 128');
                 vidsphere.setAttribute('rotation', '0 -90 0');
                 state.scene.appendChild(vidsphere);
 
@@ -705,6 +786,9 @@ Copyright (c) 2025 Ben Egan
                 camera.setAttribute('position', '0 1.6 0');
                 camera.setAttribute('id', 'mainCamera');
                 state.scene.appendChild(camera);
+                mediaHandlers.addControllers(state.scene);
+                mediaHandlers.setXRQuality(state.scene);
+                state.panorama = vidsphere;
 
                 elements.aframeContainer.appendChild(state.scene);
 
@@ -842,6 +926,8 @@ Copyright (c) 2025 Ben Egan
                     state.videoElement.pause();
                     state.videoElement = null;
                 }
+                state.panorama = null;
+                state.snapTurnEngaged = false;
                 elements.controls.style.display = 'none';
                 elements.videoControls.style.display = 'none';
                 elements.zoomInfo.style.display = 'none';
@@ -1010,7 +1096,7 @@ Copyright (c) 2025 Ben Egan
             }
         });
 
-        // Check for URL parameter and load media if present
+        // Check for hash parameters and load media if present
         const mediaParams = getMediaUrlFromParams();
         if (mediaParams.url) {
             mediaHandlers.loadMediaFromUrl(mediaParams.url, mediaParams.stereoMode);
